@@ -11,10 +11,10 @@ viewPixel = False
 #Mouse Collback
 def mouse_callback(event, _x, _y, flags, param):
     global pauseVideo, viewPixel, x, y
-    if event == cv2.EVENT_LBUTTONDOWN:
+    if event == cv2.EVENT_LBUTTONDOWN:              #Left click pixel coordinates
         x, y = _x, _y
         viewPixel = True
-    if event == cv2.EVENT_RBUTTONDOWN:
+    if event == cv2.EVENT_RBUTTONDOWN:              #Right click pause video
         pauseVideo = not pauseVideo
 
 #Video Load
@@ -23,8 +23,8 @@ videoPath = 'MAS.MOV'                                   # Path to video file
 cap = cv2.VideoCapture(videoPath)
 
 #Create Window and config callback mouse
-cv2.namedWindow('Video')
-cv2.setMouseCallback('Video', mouse_callback)
+cv2.namedWindow('Video')                                #Name of the window video
+cv2.setMouseCallback('Video', mouse_callback)           #Set mouse callback function
 
 while True:
     if not pauseVideo:
