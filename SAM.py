@@ -28,8 +28,8 @@ if not cap.isOpened():
 else:
     print("Video opened successfully.")
 
-newWidth = 480                                       #New width of the video
-newHeight = 680                                    #New height of the video
+newWidth = 680                                       #New width of the video
+newHeight = 480                                    #New height of the video
 
 upper_limit = np.array([225,120,35])
 lower_limit = np.array([221,118,31])                #Upper limit of the video
@@ -43,7 +43,7 @@ cv2.namedWindow('Video')                                #Name of the window vide
 cv2.setMouseCallback('Video', mouse_callback)           #Set mouse callback function
 
 
-# Crear una ventana con controles deslizantes (trackbars)
+# create window trackbar for color change
 cv2.namedWindow("Trackbars")
 cv2.createTrackbar("H Min", "Trackbars", 0, 179, nothing)
 cv2.createTrackbar("H Max", "Trackbars", 179, 179, nothing)
@@ -68,7 +68,7 @@ while True:
     # BGR to HSV Converter
     hsv = cv2.cvtColor(frame3, cv2.COLOR_BGR2HSV)
 
-    # Leer valores de las trackbars
+    # read trackbar positions
     h_min = cv2.getTrackbarPos("H Min", "Trackbars")
     h_max = cv2.getTrackbarPos("H Max", "Trackbars")
     s_min = cv2.getTrackbarPos("S Min", "Trackbars")
