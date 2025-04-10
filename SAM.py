@@ -76,7 +76,7 @@ while True:
     v_min = cv2.getTrackbarPos("V Min", "Trackbars")
     v_max = cv2.getTrackbarPos("V Max", "Trackbars")
 
-    # Crear los rangos de colores
+    # Create color range for mask
     bajo = np.array([h_min, s_min, v_min])
     alto = np.array([h_max, s_max, v_max])
     ## binarizar imagen
