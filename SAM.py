@@ -28,8 +28,8 @@ if not cap.isOpened():
 else:
     print("Video opened successfully.")
 
-newWidth = 680                                       #New width of the video
-newHeight = 480                                    #New height of the video
+newWidth = 880                                       #New width of the video
+newHeight = 680                                    #New height of the video
 
 upper_limit = np.array([225,120,35])
 lower_limit = np.array([221,118,31])                #Upper limit of the video
