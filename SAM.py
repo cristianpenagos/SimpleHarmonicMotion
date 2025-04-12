@@ -54,6 +54,11 @@ cv2.createTrackbar("V Max", "Trackbars", 255, 255, nothing)
 
 # Centroid calculation function
 
+#Centroid distannce calculation function
+
+
+
+
 
 while True:
     if not pauseVideo:
