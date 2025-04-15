@@ -65,13 +65,13 @@ def distance(x1, y1, x2, y2):
 #
 
 
-while True:
-    if not pauseVideo:
+while True:                             # Main loop to read video frames
+    if not pauseVideo:                  #If video is not paused
         ret, frame = cap.read()
         frame2 = np.copy(frame)
         if not ret:
             break
-    if viewPixel:
+    if viewPixel:                       #If pixel is selected
         pixelColor = frame[y, x] #Obtain pixel color Value
         frame2 = np.copy(frame)
         cv2.putText(frame2, f'position (x, y): ({x}, {y}) color: {pixelColor}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
@@ -101,5 +101,5 @@ while True:
     key = cv2.waitKey(30) & 0xFF
     if key == 27:  # ESC key to exit
         break
-cap.release()
-cv2.destroyAllWindows()
+cap.release()                           # Release video capture object
+cv2.destroyAllWindows()                 # Close all OpenCV windows
