@@ -19,7 +19,7 @@ def mouse_callback(event, _x, _y, flags, param):
 
 #Video Load
 
-videoPath = 'MAS2.MOV'                                   # Path to video file
+videoPath = 'MAS4.MOV'                                   # Path to video file
 cap = cv2.VideoCapture(videoPath)
 
 #Validate is cap is opened
@@ -28,11 +28,11 @@ if not cap.isOpened():
 else:
     print("Video opened successfully.")
 
-newWidth = 880                                       #New width of the video
+newWidth = 1080                                       #New width of the video
 newHeight = 680                                    #New height of the video
 
-upper_limit = np.array([225,120,35])
-lower_limit = np.array([221,118,31])                #Upper limit of the video
+#upper_limit = np.array([225,120,35])
+#lower_limit = np.array([221,118,31])                #Upper limit of the video
 
 def nothing(x):
     pass
@@ -53,6 +53,7 @@ cv2.createTrackbar("V Min", "Trackbars", 0, 255, nothing)
 cv2.createTrackbar("V Max", "Trackbars", 255, 255, nothing)
 
 # Centroid calculation function
+
 
 #Centroid distannce calculation function
 
@@ -93,6 +94,18 @@ while True:                             # Main loop to read video frames
     alto = np.array([h_max, s_max, v_max])
     ## binarizar imagen
     mascara = cv2.inRange(hsv, bajo, alto)
+
+    # find contours in the mask
+    contours, _ = cv2.findContours(mascara, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    # Draw contours on the original frame
+    for contour in contours:
+        if cv2.contourArea(contour) > 100:  # Filtrar contornos pequeños
+            cv2.drawContours(frame3, [contour], -1, (0, 239, 255), 2)  # Dibujar contorno en verde
+
+    # Mostrar la imagen con los contornos dibujados
+    cv2.imshow('Video con contornos', frame3)
+
 
     cv2.imshow('Video mascara', mascara)
     cv2.imshow('Video', hsv)
