@@ -1,49 +1,45 @@
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
 import math
 
-
-#Variables Globales
+# Variables globales
 pauseVideo = False
 viewPixel = False
+x, y = 0, 0
+prev_cX, prev_cY = None, None
+scale_cm_per_px = 2.5 / 178  # Escala de conversión
+fps = 30  # Fotogramas por segundo
 
-#Mouse Collback
 def mouse_callback(event, _x, _y, flags, param):
     global pauseVideo, viewPixel, x, y
-    if event == cv2.EVENT_LBUTTONDOWN:              #Left click pixel coordinates
+    if event == cv2.EVENT_LBUTTONDOWN:
         x, y = _x, _y
         viewPixel = True
-    if event == cv2.EVENT_RBUTTONDOWN:              #Right click pause video
+    if event == cv2.EVENT_RBUTTONDOWN:
         pauseVideo = not pauseVideo
 
-#Video Load
-
-videoPath = 'MAS4.MOV'                                   # Path to video file
+# Cargar video
+videoPath = 'MAS4.MOV'
 cap = cv2.VideoCapture(videoPath)
 
-#Validate is cap is opened
 if not cap.isOpened():
-    print("Error: Could not open video.")
-else:
-    print("Video opened successfully.")
+    print("Error: No se pudo abrir el video.")
+    exit()
 
-newWidth = 1080                                       #New width of the video
-newHeight = 680                                    #New height of the video
+# Obtener fps del video
+fps = cap.get(cv2.CAP_PROP_FPS)
+if fps == 0:
+    fps = 30  # Valor predeterminado si no se puede obtener
 
-#upper_limit = np.array([225,120,35])
-#lower_limit = np.array([221,118,31])                #Upper limit of the video
+newWidth = 1080
+newHeight = 680
 
 def nothing(x):
     pass
 
+cv2.namedWindow('Video')
+cv2.setMouseCallback('Video', mouse_callback)
 
-#Create Window and config callback mouse
-cv2.namedWindow('Video')                                #Name of the window video
-cv2.setMouseCallback('Video', mouse_callback)           #Set mouse callback function
-
-
-# create window trackbar for color change
 cv2.namedWindow("Trackbars")
 cv2.createTrackbar("H Min", "Trackbars", 0, 179, nothing)
 cv2.createTrackbar("H Max", "Trackbars", 179, 179, nothing)
@@ -52,36 +48,22 @@ cv2.createTrackbar("S Max", "Trackbars", 255, 255, nothing)
 cv2.createTrackbar("V Min", "Trackbars", 0, 255, nothing)
 cv2.createTrackbar("V Max", "Trackbars", 255, 255, nothing)
 
-# Centroid calculation function
-
-
-#Centroid distannce calculation function
-
-def distance(x1, y1, x2, y2):
-    return math.sqrt((x2 - x1)** + (y2 - y1)**2)
-
-
-#velocity calculation function
-
-#
-
-
-while True:                             # Main loop to read video frames
-    if not pauseVideo:                  #If video is not paused
+while True:
+    if not pauseVideo:
         ret, frame = cap.read()
-        frame2 = np.copy(frame)
         if not ret:
             break
-    if viewPixel:                       #If pixel is selected
-        pixelColor = frame[y, x] #Obtain pixel color Value
         frame2 = np.copy(frame)
-        cv2.putText(frame2, f'position (x, y): ({x}, {y}) color: {pixelColor}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-    
-    frame3 = cv2.resize(frame2, (newWidth, newHeight)) 
-    # BGR to HSV Converter
+
+    if viewPixel:
+        pixelColor = frame[y, x]
+        frame2 = np.copy(frame)
+        cv2.putText(frame2, f'Posición (x, y): ({x}, {y}) Color: {pixelColor}', (10, 30),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+
+    frame3 = cv2.resize(frame2, (newWidth, newHeight))
     hsv = cv2.cvtColor(frame3, cv2.COLOR_BGR2HSV)
 
-    # read trackbar positions
     h_min = cv2.getTrackbarPos("H Min", "Trackbars")
     h_max = cv2.getTrackbarPos("H Max", "Trackbars")
     s_min = cv2.getTrackbarPos("S Min", "Trackbars")
@@ -89,30 +71,44 @@ while True:                             # Main loop to read video frames
     v_min = cv2.getTrackbarPos("V Min", "Trackbars")
     v_max = cv2.getTrackbarPos("V Max", "Trackbars")
 
-    # Create color range for mask
     bajo = np.array([h_min, s_min, v_min])
     alto = np.array([h_max, s_max, v_max])
-    ## binarizar imagen
     mascara = cv2.inRange(hsv, bajo, alto)
 
-    # find contours in the mask
     contours, _ = cv2.findContours(mascara, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    # Draw contours on the original frame
     for contour in contours:
-        if cv2.contourArea(contour) > 100:  # Filtrar contornos pequeños
-            cv2.drawContours(frame3, [contour], -1, (0, 239, 255), 2)  # Dibujar contorno en verde
+        if cv2.contourArea(contour) > 100:
+            M = cv2.moments(contour)
+            if M["m00"] != 0:
+                cX = int(M["m10"] / M["m00"])
+                cY = int(M["m01"] / M["m00"])
 
-    # Mostrar la imagen con los contornos dibujados
+                # Calcular velocidad si hay una posición previa
+                if prev_cX is not None and prev_cY is not None:
+                    dx = cX - prev_cX
+                    dy = cY - prev_cY
+                    distancia_px = math.hypot(dx, dy)
+                    velocidad_cm_s = distancia_px * scale_cm_per_px * fps
+                    cv2.putText(frame3, f"Velocidad: {velocidad_cm_s:.2f} cm/s", (cX + 10, cY + 10),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
+
+                # Dibujar contorno y centroide
+                cv2.drawContours(frame3, [contour], -1, (0, 239, 255), 2)
+                cv2.circle(frame3, (cX, cY), 5, (255, 255, 255), -1)
+                cv2.putText(frame3, "Centroide", (cX - 25, cY - 25),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+
+                # Actualizar posición previa
+                prev_cX, prev_cY = cX, cY
+
     cv2.imshow('Video con contornos', frame3)
-
-
     cv2.imshow('Video mascara', mascara)
     cv2.imshow('Video', hsv)
 
-    #cv2.imshow('Video', frame2)
     key = cv2.waitKey(30) & 0xFF
-    if key == 27:  # ESC key to exit
+    if key == 27:
         break
-cap.release()                           # Release video capture object
-cv2.destroyAllWindows()                 # Close all OpenCV windows
+
+cap.release()
+cv2.destroyAllWindows()
