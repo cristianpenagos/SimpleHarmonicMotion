@@ -19,7 +19,7 @@ def mouse_callback(event, _x, _y, flags, param):
 
 #Video Load
 
-videoPath = 'MAS.MOV'                                   # Path to video file
+videoPath = 'MAS2.MOV'                                   # Path to video file
 cap = cv2.VideoCapture(videoPath)
 
 #Validate is cap is opened
